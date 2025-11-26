@@ -4,14 +4,14 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || "http://localhost:3000/api",
 });
 
-// Request — 自動加 token
+// Request 攔截器 — 自動帶 token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Response — 401 自動跳轉登入
+// Response 攔截器 — 401：自動跳到登入
 api.interceptors.response.use(
   (res) => res,
   (error) => {
@@ -23,7 +23,6 @@ api.interceptors.response.use(
   }
 );
 
-// API
 export async function fetchMachines() {
   return (await api.get("/machines")).data;
 }
