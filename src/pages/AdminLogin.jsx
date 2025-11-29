@@ -1,81 +1,87 @@
-// src/pages/AdminLogin.jsx
 import React, { useState } from "react";
-import { adminLogin } from "../api"; // ★ 使用你的 axios instance
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [msg, setMsg] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  // 表單輸入更新
-  const change = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // 登入處理
   const login = async (e) => {
     e.preventDefault();
-    setMsg("");
+    setError("");
 
     try {
-      const res = await adminLogin(form);
-
-      // 儲存 token
+      const res = await api.post("/admin/login", { username, password });
       localStorage.setItem("token", res.data.token);
-
-      // 導向後台首頁
-      navigate("/admin");
+      navigate("/admin/dashboard");
+      window.location.reload();
     } catch (err) {
-      console.log(err);
-      setMsg("帳號或密碼不正確");
+      setError("帳號或密碼不正確");
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-darkbg px-6">
 
-      <div className="bg-white w-96 p-8 rounded-xl shadow-xl">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          管理登入
-        </h2>
+      {/* 外層容器 */}
+      <div className="w-full max-w-md bg-darkcard p-8 rounded-2xl shadow-neon border border-darkborder">
 
-        <form onSubmit={login} className="flex flex-col gap-4">
-          {/* 帳號 */}
-          <input
-            name="username"
-            placeholder="帳號"
-            className="border p-2 rounded focus:ring focus:ring-blue-300"
-            value={form.username}
-            onChange={change}
-            required
-          />
+        {/* Logo 區域 */}
+        <h1 className="text-center text-4xl font-extrabold text-white text-glow mb-3">
+          Laser Market 管理後台
+        </h1>
 
-          {/* 密碼 */}
-          <input
-            name="password"
-            type="password"
-            placeholder="密碼"
-            className="border p-2 rounded focus:ring focus:ring-blue-300"
-            value={form.password}
-            onChange={change}
-            required
-          />
+        {/* 跑馬燈 */}
+        <div className="overflow-hidden whitespace-nowrap w-full text-center mb-6">
+          <span className="animate-marquee text-gray-400 text-sm">
+            🔐 專業管理平台・Cloudinary 圖片管理・安全登入・高品質二手機台資料庫
+            ｜🔥 全站暗黑模式・後台一鍵管理・立即登入！
+          </span>
+        </div>
 
-          {/* 登入按鈕 */}
+        {/* 表單 */}
+        <form onSubmit={login} className="space-y-5">
+
+          <div>
+            <label className="text-gray-300 text-sm">帳號</label>
+            <input
+              type="text"
+              className="dark-input w-full mt-1"
+              placeholder="請輸入 admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-gray-300 text-sm">密碼</label>
+            <input
+              type="password"
+              className="dark-input w-full mt-1"
+              placeholder="請輸入密碼"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          {error && (
+            <p className="text-red-500 text-center font-medium">{error}</p>
+          )}
+
           <button
-            className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+            type="submit"
+            className="w-full btn-dark bg-primary text-white font-bold py-3 rounded-lg hover:shadow-neon transition"
           >
             登入
           </button>
         </form>
 
-        {/* 錯誤訊息 */}
-        {msg && (
-          <div className="text-red-600 mt-3 text-center text-sm">
-            {msg}
-          </div>
-        )}
+        {/* Footer */}
+        <p className="text-center text-sm text-gray-500 mt-6">
+          © 2025 Laser Market Admin Panel  
+        </p>
       </div>
     </div>
   );

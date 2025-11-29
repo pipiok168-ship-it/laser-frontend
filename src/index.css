@@ -1,137 +1,124 @@
-/* ============================
-   全站暗黑主題核心
-   ============================ */
-:root {
-  --bg: #0d0d0d;
-  --bg-light: #1a1a1a;
-  --bg-card: #161616;
-  --bg-card-hover: #222;
-  --border: #2a2a2a;
+/* Tailwind 基礎 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  --text: #e0e0e0;
-  --text-light: #b5b5b5;
-
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --success: #22c55e;
-  --danger: #ef4444;
-}
-
-/* 全站背景 + 字體 */
+/* ===========================================
+   🔥 全站暗黑背景 + 字體設定（專業版）
+   =========================================== */
+html,
 body {
+  background-color: #0a0a0a;
+  color: #e5e5e5;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Inter", system-ui, sans-serif;
+  padding: 0;
+  scroll-behavior: smooth;
 }
 
-/* 基礎連結樣式 */
-a {
-  color: var(--primary);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--primary-hover);
+/* 去除預設 margin */
+body {
+  @apply antialiased;
 }
 
-/* ============================
-   UI 元件：按鈕
-   ============================ */
-.btn {
-  padding: 0.6rem 1.2rem;
+/* ===========================================
+   🔥 全站捲動條（科技感 UI）
+   =========================================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #303030;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #505050;
+}
+
+/* ===========================================
+   🔥 跑馬燈基礎 class（配合 Tailwind 動畫）
+   =========================================== */
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+/* ===========================================
+   🔥 卡片懸浮效果（更高級）
+   =========================================== */
+.card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
+}
+
+/* ===========================================
+   🔥 Banner 遮罩（強化黑透明感）
+   =========================================== */
+.banner-overlay {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+/* ===========================================
+   🔥 Input / Select (專業暗色表單 UI)
+   =========================================== */
+.dark-input {
+  background: #111;
+  border: 1px solid #333;
+  color: #e5e5e5;
   border-radius: 8px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
+  padding: 10px 12px;
 }
-.btn-primary {
-  background: var(--primary);
-  color: white;
+.dark-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-.btn-success {
-  background: var(--success);
-  color: white;
-}
-.btn-danger {
-  background: var(--danger);
-  color: white;
-}
+
+/* ===========================================
+   🔥 全站按鈕（暗黑高質感）
+   =========================================== */
 .btn-dark {
-  background: var(--bg-light);
-  color: var(--text);
-  border-color: var(--border);
+  background: #1c1c1e;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #e5e5e5;
+  transition: 0.25s ease;
+  border: 1px solid #333;
 }
 .btn-dark:hover {
-  background: var(--bg-card-hover);
+  background: #2a2a2d;
+  border-color: #555;
 }
 
-/* ============================
-   UI 元件：卡片
-   ============================ */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
-  transition: 0.2s;
-}
-.card:hover {
-  background: var(--bg-card-hover);
-  transform: translateY(-2px);
+/* ===========================================
+   🔥 文字高光（LOGO + 標題使用）
+   =========================================== */
+.text-glow {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
-/* ============================
-   UI 元件：輸入框（全站共用）
-   ============================ */
-.input {
-  width: 100%;
-  padding: 0.75rem;
-  background: var(--bg-light);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-}
-.input:focus {
-  border-color: var(--primary);
-  outline: none;
+/* ===========================================
+   🔥 Banner 圖片淡入
+   =========================================== */
+.banner-fadein {
+  animation: fadein 1.5s ease-out;
 }
 
-/* ============================
-   UI 元件：選單
-   ============================ */
-.select {
-  padding: 0.75rem;
-  background: var(--bg-light);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-}
-.select:focus {
-  border-color: var(--primary);
-  outline: none;
-}
-
-/* ============================
-   跑馬燈（全站可用的標語）
-   ============================ */
-@keyframes marquee {
-  0% { transform: translateX(100%);}
-  100% { transform: translateX(-100%);}
-}
-.marquee-box {
-  background: var(--primary);
-  color: white;
-  overflow: hidden;
-  height: 40px;
-  display: flex;
-  align-items: center;
-}
-.marquee-text {
-  display: inline-block;
-  padding-left: 100%;
-  animation: marquee 15s linear infinite;
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
