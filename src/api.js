@@ -1,7 +1,8 @@
+// src/api.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://laser-backend.onrender.com",
+  baseURL: "https://laser-backend-1.onrender.com", // ✅ 用這個
 });
 
 // 自動夾帶 Token（Admin 登入用）
