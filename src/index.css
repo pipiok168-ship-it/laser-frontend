@@ -1,140 +1,15 @@
-/* Tailwind 基礎 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ===========================================
-   🔥 全站暗黑背景 + 字體設定（專業版）
-   =========================================== */
-html,
-body {
-  background-color: #0a0a0a;
-  color: #e5e5e5;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
-}
-
-/* 去除預設 margin */
-body {
-  @apply antialiased;
-}
-
-/* ===========================================
-   🔥 全站捲動條（科技感 UI）
-   =========================================== */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
-}
-::-webkit-scrollbar-thumb {
-  background: #303030;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #505050;
-}
-
-/* ===========================================
-   🔥 跑馬燈基礎 class（配合 Tailwind 動畫）
-   =========================================== */
-.animate-marquee {
-  display: inline-block;
-  white-space: nowrap;
-  will-change: transform;
-}
-
-/* ===========================================
-   🔥 卡片懸浮效果（更高級）
-   =========================================== */
-.card-hover {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.card-hover:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
-}
-
-/* ===========================================
-   🔥 Banner 遮罩（強化黑透明感）
-   =========================================== */
-.banner-overlay {
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(2px);
-}
-
-/* ===========================================
-   🔥 Input / Select (專業暗色表單 UI)
-   =========================================== */
+/* 全域暗黑輸入框 */
 .dark-input {
-  background: #111;
-  border: 1px solid #333;
-  color: #e5e5e5;
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-.dark-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  @apply bg-darkcard border border-darkborder text-white px-3 py-2 rounded-lg outline-none focus:border-primary;
 }
 
-/* ===========================================
-   🔥 全站按鈕（暗黑高質感）
-   =========================================== */
+/* 全域按鈕 */
 .btn-dark {
-  background: #1c1c1e;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 500;
-  color: #e5e5e5;
-  transition: 0.25s ease;
-  border: 1px solid #333;
-}
-.btn-dark:hover {
-  background: #2a2a2d;
-  border-color: #555;
-}
-
-/* ===========================================
-   🔥 文字高光（LOGO + 標題使用）
-   =========================================== */
-.text-glow {
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
-}
-
-/* ===========================================
-   🔥 Banner 圖片淡入
-   =========================================== */
-.banner-fadein {
-  animation: fadein 1.5s ease-out;
-}
-
-@keyframes fadein {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-/* ✨ 讓跑馬燈更平滑 */
-.animate-marquee {
-  animation: marquee 12s linear infinite;
-}
-
-/* ✨ marquee keyframes（若 tailwind 已有可以省略） */
-@keyframes marquee {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
+  @apply px-4 py-2 rounded bg-primary text-white font-semibold hover:shadow-neon transition;
 }
 
 
