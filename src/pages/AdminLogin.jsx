@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { adminLogin } from "../api";
 
 export default function AdminLogin() {
+  console.log("目前前端 API BaseURL =", api.defaults.baseURL);
   const nav = useNavigate();
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
