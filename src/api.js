@@ -1,56 +1,51 @@
 import axios from "axios";
 
+// 後端 Render API
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || "http://localhost:3000/api",
+  baseURL: "https://laser-backend-1.onrender.com",
 });
 
-// Request 攔截器 — 自動帶 token
+// 夾帶 Token（Admin Login 後）
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// Response 攔截器 — 401：自動跳到登入
-api.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/admin/login";
-    }
-    return Promise.reject(error);
-  }
-);
+//
+// 🚀 以下是前端會 import 的所有 API 函式
+//
 
-export async function fetchMachines() {
-  return (await api.get("/machines")).data;
-}
+// 取得全部機台（公開）
+export const fetchMachines = () => api.get("/api/machines");
 
-export async function getMachineById(id) {
-  return (await api.get(`/machines/${id}`)).data;
-}
+// 新增一台機器（需 Token）
+export const createMachine = (formData) =>
+  api.post("/api/machines", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
-export async function createMachine(form, images) {
-  const fd = new FormData();
-  fd.append("data", JSON.stringify(form));
-  images.forEach((img) => fd.append("images", img));
-  return (await api.post("/machines", fd)).data;
-}
+// 取得單一機台（前端用）
+export const getMachineById = (id) => api.get(`/api/machines/${id}`);
 
-export async function updateMachine(id, form, newImages) {
-  const fd = new FormData();
-  fd.append("data", JSON.stringify(form));
-  newImages.forEach((img) => fd.append("images", img));
-  return (await api.put(`/machines/${id}`, fd)).data;
-}
+// 更新機台（EDIT）
+export const updateMachine = (id, formData) =>
+  api.put(`/api/machines/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
-export async function deleteImage(id, imgUrl) {
-  return (await api.post("/deleteImage", { id, img: imgUrl })).data;
-}
+// 刪除單張圖片
+export const deleteImage = (data) =>
+  api.post(`/api/deleteImage`, data);
 
-export async function deleteMachine(id) {
-  return (await api.delete(`/machines/${id}`)).data;
-}
+// 刪除整台機器（後台）
+export const deleteMachine = (id) => api.delete(`/api/machines/${id}`);
+
+// Admin Login
+export const adminLogin = (username, password) =>
+  api.post("/api/admin/login", { username, password });
 
 export default api;
+

@@ -1,154 +1,251 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import {
-  getMachineById,
-  updateMachine,
-  deleteImage,
-} from "../api";
+import { useNavigate, useParams } from "react-router-dom";
+import { getMachineById, updateMachine, deleteImage } from "../api";
 
-function EditMachine() {
+export default function EditMachine() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [machine, setMachine] = useState(null);
   const [form, setForm] = useState({
     name: "",
     model: "",
     power: "",
-    location: "",
     price: "",
+    location: "",
+    description: "",
   });
-
+  const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
-  const [newPreview, setNewPreview] = useState([]);
-  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  // 載入現有資料
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getMachineById(id);
-        setMachine(data);
-
-        setForm({
-          name: data.name,
-          model: data.model,
-          power: data.power,
-          location: data.location,
-          price: data.price,
-        });
-      } catch (err) {
-        console.error(err);
-      }
+  const loadMachine = async () => {
+    try {
+      setError("");
+      setLoading(true);
+      const data = await getMachineById(id);
+      setForm({
+        name: data.name || "",
+        model: data.model || "",
+        power: data.power || "",
+        price: data.price || "",
+        location: data.location || "",
+        description: data.description || "",
+      });
+      setExistingImages(data.images || []);
+    } catch (err) {
+      console.error("讀取機台失敗:", err);
+      setError("讀取機台資料失敗，請稍後再試。");
+    } finally {
+      setLoading(false);
     }
-    load();
+  };
+
+  useEffect(() => {
+    loadMachine();
   }, [id]);
 
-  const change = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
-  const handleNewImages = (e) => {
-    const files = Array.from(e.target.files);
+  const handleNewImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
     setNewImages(files);
-    setNewPreview(files.map((file) => URL.createObjectURL(file)));
   };
 
-  // 刪除舊圖片
   const handleDeleteImage = async (imgUrl) => {
+    if (!window.confirm("確定要刪除這張圖片嗎？")) return;
     try {
       await deleteImage(id, imgUrl);
-
-      setMachine({
-        ...machine,
-        images: machine.images.filter((img) => img !== imgUrl),
-      });
+      setExistingImages((imgs) => imgs.filter((i) => i !== imgUrl));
     } catch (err) {
-      console.error(err);
-      alert("刪除失敗");
+      console.error("圖片刪除失敗:", err);
+      alert("圖片刪除失敗，請稍後再試。");
     }
   };
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg("");
+    setError("");
+    setSubmitting(true);
 
     try {
       await updateMachine(id, form, newImages);
-
-      setMsg("✔ 更新成功！");
-      setTimeout(() => navigate(`/machine/${id}`), 800);
+      navigate("/admin/dashboard");
     } catch (err) {
-      console.error(err);
-      setMsg("❌ 更新失敗");
+      console.error("更新失敗:", err);
+      setError("更新失敗，請確認資料或稍後再試。");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (!machine) return <p className="p-8">載入中...</p>;
+  const handleCancel = () => {
+    navigate("/admin/dashboard");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0b0b0f] text-gray-100 flex items-center justify-center">
+        <p className="text-sm text-gray-400">讀取中，請稍候...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8 max-w-xl mx-auto">
-      <Link to={`/machine/${id}`} className="text-blue-600 underline">
-        ← 回詳情頁
-      </Link>
-
-      <h1 className="text-3xl font-bold mb-6">編輯機台</h1>
-
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        <input name="name" className="border p-2 rounded" value={form.name} onChange={change} />
-        <input name="model" className="border p-2 rounded" value={form.model} onChange={change} />
-        <input name="power" className="border p-2 rounded" value={form.power} onChange={change} />
-        <input name="location" className="border p-2 rounded" value={form.location} onChange={change} />
-        <input name="price" className="border p-2 rounded" value={form.price} onChange={change} />
-
-        {/* 舊圖片 */}
-        <div>
-          <p className="mb-2 font-semibold">現有圖片：</p>
-          <div className="grid grid-cols-3 gap-2">
-            {machine.images.map((img, i) => (
-              <div key={i} className="relative">
-                <img
-                  src={img}
-                  className="w-full h-32 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleDeleteImage(img)}
-                  className="absolute top-1 right-1 bg-red-600 text-white px-1 rounded"
-                >
-                  刪
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 新圖片 */}
-        <div>
-          <p className="mb-2 font-semibold">新增圖片：</p>
-          <input type="file" multiple accept="image/*" onChange={handleNewImages} />
-
-          {newPreview.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {newPreview.map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  className="w-full h-32 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <button className="bg-blue-600 text-white p-2 rounded">
-          提交更新
+    <div className="min-h-screen bg-[#0b0b0f] text-gray-100">
+      {/* Top Bar */}
+      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">編輯機台 #{id}</h1>
+        <button
+          onClick={handleCancel}
+          className="px-3 py-1 rounded-lg text-sm bg-gray-700 hover:bg-gray-600"
+        >
+          返回列表
         </button>
-      </form>
+      </header>
 
-      {msg && <p className="mt-4">{msg}</p>}
+      <main className="px-6 py-6">
+        <div className="max-w-3xl mx-auto bg-[#111218] border border-gray-800 rounded-xl p-6 shadow">
+          <h2 className="text-lg font-semibold mb-4">機台資訊</h2>
+
+          {error && (
+            <p className="text-red-400 text-sm mb-3">
+              {error}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field
+                label="名稱"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+              />
+              <Field
+                label="型號"
+                name="model"
+                value={form.model}
+                onChange={handleChange}
+              />
+              <Field
+                label="功率"
+                name="power"
+                value={form.power}
+                onChange={handleChange}
+              />
+              <Field
+                label="價格 (NT$)"
+                name="price"
+                type="number"
+                value={form.price}
+                onChange={handleChange}
+              />
+              <Field
+                label="地區"
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1">描述</label>
+              <textarea
+                name="description"
+                rows={4}
+                className="w-full dark-input resize-none"
+                value={form.description}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* 既有圖片 */}
+            <div>
+              <label className="block text-sm mb-1">已上傳圖片</label>
+              {existingImages.length === 0 && (
+                <p className="text-xs text-gray-400">目前沒有圖片。</p>
+              )}
+              {existingImages.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {existingImages.map((img) => (
+                    <div key={img} className="w-28">
+                      <img
+                        src={img}
+                        alt=""
+                        className="w-28 h-20 object-cover rounded-md border border-gray-700"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(img)}
+                        className="mt-1 w-full text-xs py-1 rounded bg-red-600 hover:bg-red-500"
+                      >
+                        刪除
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 新增圖片 */}
+            <div>
+              <label className="block text-sm mb-1">新增圖片（可多選）</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleNewImagesChange}
+                className="text-sm text-gray-300"
+              />
+              {newImages.length > 0 && (
+                <p className="mt-1 text-xs text-gray-400">
+                  將新增 {newImages.length} 張圖片
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm font-medium disabled:opacity-60"
+              >
+                {submitting ? "儲存中..." : "儲存變更"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
 
-export default EditMachine;
+function Field({ label, name, value, onChange, type = "text", required }) {
+  return (
+    <div>
+      <label className="block text-sm mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type={type}
+        name={name}
+        className="w-full dark-input"
+        value={value}
+        onChange={onChange}
+        required={required}
+      />
+    </div>
+  );
+}

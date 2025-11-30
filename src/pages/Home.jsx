@@ -1,186 +1,182 @@
 import React, { useEffect, useState } from "react";
 import { fetchMachines } from "../api";
 import { Link, useNavigate } from "react-router-dom";
-import { FiSearch, FiLogIn, FiPlusCircle, FiLogOut } from "react-icons/fi";
+import { FiSearch, FiLogIn, FiPlusCircle, FiLogOut, FiStar, FiBox, FiCpu } from "react-icons/fi";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
 
-function Home() {
+export default function Home() {
+  const [machines, setMachines] = useState([]);
+  const [filter, setFilter] = useState("全部");
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  const [machines, setMachines] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const [keyword, setKeyword] = useState("");
-  const [sortType, setSortType] = useState("none");
-
   useEffect(() => {
-    async function load() {
-      try {
-        const data = await fetchMachines();
-        setMachines(data);
-      } catch (err) {
-        console.error(err);
-        setError("無法連線後端 API");
-      } finally {
-        setLoading(false);
-      }
-    }
     load();
   }, []);
 
+  async function load() {
+    try {
+      const data = await fetchMachines();
+      setMachines(data);
+    } catch (err) {
+      console.log("讀取失敗", err);
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem("token");
-    navigate("/");
     window.location.reload();
   };
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center min-h-screen text-white text-xl">
-        Loading...
-      </div>
-    );
+  const categories = ["全部", "光纖雷射", "CO2 雷射", "桌上型", "手持式"];
 
-  if (error)
-    return (
-      <div className="text-center text-red-400 text-lg mt-10">{error}</div>
-    );
-
-  // Search + Sort
-  let filtered = machines.filter((m) =>
-    `${m.name} ${m.model} ${m.location} ${m.power} ${m.price}`
-      .toLowerCase()
-      .includes(keyword.toLowerCase())
-  );
-
-  if (sortType === "low") filtered.sort((a, b) => a.price - b.price);
-  if (sortType === "high") filtered.sort((a, b) => b.price - a.price);
+  const filteredMachines =
+    filter === "全部"
+      ? machines
+      : machines.filter((m) => (m.category || "").includes(filter));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-gray-100">
+    <div className="min-h-screen bg-darkbg text-gray-200">
 
-      {/* =========================== */}
-      {/*  Hero Banner Section         */}
-      {/* =========================== */}
-      <div className="relative w-full h-[320px] md:h-[420px] overflow-hidden">
+      {/* 🔥 Hero Banner（豪華版） */}
+      <div className="relative h-[420px] w-full banner-fadein overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1581091012184-5c8b8c4f07d4?auto=format&fit=crop&w=1600&q=80"
-          className="w-full h-full object-cover opacity-40"
+          className="h-full w-full object-cover opacity-40"
+          src="https://images.unsplash.com/photo-1581091870627-3f9c0c35d5b1?q=80"
+          alt="laser"
         />
 
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-wide drop-shadow-2xl">
+        {/* 動態光線 */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-black/70" />
+
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
+          <h1 className="text-5xl font-extrabold text-white text-glow drop-shadow-xl">
             Laser Market
           </h1>
-          <p className="mt-3 text-lg md:text-2xl text-gray-300 max-w-2xl">
-            暗黑專業版・二手機台平台  
-            高品質設備｜完整後台管理｜立即刊登您的機台！
+          <p className="mt-4 text-gray-300 text-xl">
+            高品質二手雷射機台｜精選設備 × 嚴格上架 × 安心交易
           </p>
+
+          {/* 搜尋列 */}
+          <div className="flex items-center gap-3 mt-8 w-full max-w-xl bg-black/40 border border-white/10 p-4 rounded-2xl backdrop-blur-md shadow-xl">
+            <FiSearch className="text-gray-400 text-xl" />
+            <input
+              type="text"
+              placeholder="搜尋名稱 / 型號 / 地區 / 價格..."
+              className="w-full bg-transparent outline-none text-gray-200"
+            />
+          </div>
         </div>
       </div>
 
-      {/* =========================== */}
-      {/*   Navbar                    */}
-      {/* =========================== */}
-      <div className="max-w-7xl mx-auto px-6 mt-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-wide">🔥 Laser Market</h1>
+      {/* ---------------------------- */}
+      {/* 三大特色區塊 */}
+      {/* ---------------------------- */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 px-6 mt-14">
+        <div className="p-6 bg-darkcard rounded-2xl border border-darkborder shadow-lg hover:shadow-blue-600/20 transition card-hover flex flex-col items-center text-center">
+          <FiStar className="text-4xl text-blue-400 mb-3" />
+          <h4 className="text-xl font-semibold mb-1">精選設備</h4>
+          <p className="text-gray-400 text-sm">所有機台均由人工審核，排除瑕疵問題。</p>
+        </div>
 
-        <div className="flex gap-3">
-          {!token && (
-            <Link
-              to="/admin/login"
-              className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700"
-            >
-              <FiLogIn /> 管理登入
-            </Link>
-          )}
+        <div className="p-6 bg-darkcard rounded-2xl border border-darkborder shadow-lg hover:shadow-blue-600/20 transition card-hover flex flex-col items-center text-center">
+          <FiCpu className="text-4xl text-blue-400 mb-3" />
+          <h4 className="text-xl font-semibold mb-1">高效能機種</h4>
+          <p className="text-gray-400 text-sm">各品牌光纖雷射、CO2、桌上型全面涵蓋。</p>
+        </div>
 
-          {token && (
-            <>
+        <div className="p-6 bg-darkcard rounded-2xl border border-darkborder shadow-lg hover:shadow-blue-600/20 transition card-hover flex flex-col items-center text-center">
+          <FiBox className="text-4xl text-blue-400 mb-3" />
+          <h4 className="text-xl font-semibold mb-1">快速交易</h4>
+          <p className="text-gray-400 text-sm">安全、透明、快速的交易流程。</p>
+        </div>
+      </div>
+
+      {/* ---------------------------- */}
+      {/* 精選機台輪播 */}
+      {/* ---------------------------- */}
+      <div className="max-w-6xl mx-auto px-6 mt-16">
+        <h2 className="text-2xl font-bold mb-4">🔥 精選機台</h2>
+
+        <Swiper spaceBetween={20} slidesPerView={1.2} breakpoints={{
+          640: { slidesPerView: 2.2 },
+          1024: { slidesPerView: 3.2 },
+        }}>
+          {machines.slice(0, 6).map((m) => (
+            <SwiperSlide key={m.id}>
               <Link
-                to="/add"
-                className="flex items-center gap-2 bg-green-600 px-4 py-2 rounded-lg hover:bg-green-500"
+                to={`/detail/${m.id}`}
+                className="bg-darkcard border border-darkborder rounded-xl p-4 card-hover shadow-md hover:shadow-xl block"
               >
-                <FiPlusCircle /> 新增機台
+                <div className="h-48 bg-black/40 rounded-lg overflow-hidden flex items-center justify-center mb-3">
+                  {m.images && m.images.length > 0 ? (
+                    <img src={m.images[0]} className="h-full w-full object-cover" alt={m.name} />
+                  ) : (
+                    <p className="text-gray-500 text-sm">無圖片</p>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-white">{m.name}</h3>
+                <p className="text-gray-400 text-sm">型號：{m.model}</p>
+                <p className="text-primary text-lg font-semibold mt-2">
+                  NT$ {m.price?.toLocaleString()}
+                </p>
               </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
 
-              <button
-                onClick={logout}
-                className="flex items-center gap-2 bg-red-600 px-4 py-2 rounded-lg hover:bg-red-500"
-              >
-                <FiLogOut /> 登出
-              </button>
-            </>
-          )}
+      {/* ---------------------------- */}
+      {/* 分類快速篩選 */}
+      {/* ---------------------------- */}
+      <div className="max-w-6xl mx-auto px-6 mt-20">
+        <h2 className="text-2xl font-bold mb-4">分類瀏覽</h2>
+
+        <div className="flex gap-3 flex-wrap">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setFilter(c)}
+              className={`px-4 py-2 rounded-full border transition ${
+                filter === c
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "border-gray-600 text-gray-300 hover:border-white hover:text-white"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* =========================== */}
-      {/* Search Box                  */}
-      {/* =========================== */}
-      <div className="max-w-7xl mx-auto px-6 mt-8">
-        <div className="relative">
-          <FiSearch className="absolute left-4 top-3 text-gray-400 text-xl" />
-          <input
-            type="text"
-            placeholder="搜尋機台名稱 / 型號 / 地區 / 價格..."
-            className="w-full bg-gray-900 border border-gray-700 p-3 px-12 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none shadow-xl"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-          />
-        </div>
-
-        {/* Sort */}
-        <div className="flex justify-end mt-4">
-          <select
-            className="bg-gray-800 border border-gray-700 p-2 rounded-lg"
-            value={sortType}
-            onChange={(e) => setSortType(e.target.value)}
-          >
-            <option value="none">排序方式</option>
-            <option value="low">價格：低 → 高</option>
-            <option value="high">價格：高 → 低</option>
-          </select>
-        </div>
-      </div>
-
-      {/* =========================== */}
-      {/* Cards Section               */}
-      {/* =========================== */}
-      <div className="max-w-7xl mx-auto px-6 mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-        {filtered.map((m) => (
+      {/* ---------------------------- */}
+      {/* 商品瀑布式網格 */}
+      {/* ---------------------------- */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 mt-10 pb-20">
+        {filteredMachines.map((m) => (
           <Link
             key={m.id}
-            to={`/machine/${m.id}`}
-            className="group bg-gray-900 border border-gray-700 rounded-xl shadow-xl overflow-hidden hover:border-blue-500 hover:-translate-y-1 hover:shadow-blue-500/30 transition-all duration-300"
+            to={`/detail/${m.id}`}
+            className="bg-darkcard border border-darkborder rounded-xl p-5 card-hover cursor-pointer shadow-md hover:shadow-xl transition"
           >
-            {m.images?.length ? (
-              <img
-                src={m.images[0]}
-                className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-            ) : (
-              <div className="w-full h-48 bg-gray-700 flex items-center justify-center text-gray-400">
-                無圖片
-              </div>
-            )}
-
-            <div className="p-4">
-              <h2 className="text-xl font-bold">{m.name}</h2>
-              <p className="text-sm text-gray-400">型號：{m.model}</p>
-              <p className="text-sm text-gray-400">功率：{m.power}W</p>
-              <p className="text-sm text-gray-400">地區：{m.location}</p>
-
-              <div className="mt-3 text-2xl font-extrabold text-blue-400">
-                ${m.price.toLocaleString()}
-              </div>
+            <div className="h-48 bg-black/40 rounded-lg overflow-hidden flex items-center justify-center mb-4">
+              {m.images && m.images.length > 0 ? (
+                <img src={m.images[0]} className="h-full w-full object-cover" alt={m.name} />
+              ) : (
+                <p className="text-gray-500 text-sm">無圖片</p>
+              )}
             </div>
+
+            <h3 className="text-xl font-bold text-white">{m.name}</h3>
+            <p className="text-gray-400 text-sm mt-1">型號：{m.model}</p>
+            <p className="text-gray-400 text-sm">地區：{m.location || "-"}</p>
+            <p className="text-primary text-lg font-semibold mt-3">
+              NT$ {m.price?.toLocaleString() || "-"}
+            </p>
           </Link>
         ))}
       </div>
     </div>
   );
 }
-
-export default Home;

@@ -122,3 +122,19 @@ body {
     opacity: 1;
   }
 }
+/* ✨ 讓跑馬燈更平滑 */
+.animate-marquee {
+  animation: marquee 12s linear infinite;
+}
+
+/* ✨ marquee keyframes（若 tailwind 已有可以省略） */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+
