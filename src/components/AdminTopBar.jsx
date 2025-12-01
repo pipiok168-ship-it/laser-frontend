@@ -16,7 +16,7 @@ export default function AdminTopBar() {
           className="cursor-pointer font-semibold"
           onClick={() => navigate("/admin")}
         >
-          Laser Market 後台<br/>
+          Laser Market 後台<br />
           <span className="text-xs text-[#8fe2ff]">暗黑專業版</span>
         </div>
 
@@ -27,12 +27,14 @@ export default function AdminTopBar() {
           >
             機台管理
           </button>
+
           <button
             onClick={() => navigate("/admin/add")}
             className="hover:text-[#00b4ff] transition"
           >
             新增機台
           </button>
+
           <button
             onClick={logout}
             className="px-3 py-1 rounded-full border border-[#333] hover:border-red-500 hover:text-red-400 text-xs transition"
@@ -44,4 +46,3 @@ export default function AdminTopBar() {
     </header>
   );
 }
-
