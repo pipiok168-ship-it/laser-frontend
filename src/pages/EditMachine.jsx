@@ -1,95 +1,106 @@
-import React, { useEffect, useState } from "react";
-import { getMachineById, updateMachine, deleteImage } from "../api";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { fetchMachineById } from "../api";
+import { FiArrowLeft } from "react-icons/fi";
 
-export default function EditMachine() {
+export default function MachineDetail() {
   const { id } = useParams();
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   const [machine, setMachine] = useState(null);
-  const [newImages, setNewImages] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // 3D 模型旋轉（圖片序列）
+  const imgRef = useRef(null);
+  const [dragging, setDragging] = useState(false);
+  const [lastX, setLastX] = useState(0);
 
   useEffect(() => {
-    getMachineById(id).then((res) => setMachine(res.data));
+    fetchMachineById(id).then((res) => setMachine(res.data));
   }, [id]);
 
   if (!machine) return <div className="text-white p-6">讀取中...</div>;
 
-  const save = async () => {
-    const fd = new FormData();
-    fd.append("data", JSON.stringify(machine));
-    newImages.forEach((img) => fd.append("images", img));
+  const images = machine.images || [];
 
-    await updateMachine(id, fd);
-    nav("/admin/dashboard");
+  // 3D 滑鼠拖曳旋轉
+  const handleMouseDown = (e) => {
+    setDragging(true);
+    setLastX(e.clientX);
   };
 
-  const removeImg = async (img) => {
-    await deleteImage({ id: machine.id, img });
-    setMachine({
-      ...machine,
-      images: machine.images.filter((i) => i !== img),
-    });
+  const handleMouseUp = () => {
+    setDragging(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging) return;
+    const diff = e.clientX - lastX;
+
+    if (Math.abs(diff) > 8) {
+      if (diff > 0) {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      } else {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+      setLastX(e.clientX);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-darkbg p-6 text-white">
-      <h1 className="text-3xl font-bold mb-6">編輯機器</h1>
+    <div className="min-h-screen bg-darkbg text-white p-6">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center text-gray-300 hover:text-white mb-4"
+      >
+        <FiArrowLeft className="mr-2" /> 返回
+      </button>
 
-      <div className="space-y-4 max-w-lg">
-        <input
-          className="dark-input w-full"
-          value={machine.name}
-          onChange={(e) => setMachine({ ...machine, name: e.target.value })}
-        />
+      <h1 className="text-3xl font-bold mb-6">{machine.name}</h1>
 
-        <input
-          className="dark-input w-full"
-          value={machine.location}
-          onChange={(e) =>
-            setMachine({ ...machine, location: e.target.value })
-          }
-        />
-
-        <input
-          className="dark-input w-full"
-          value={machine.price}
-          onChange={(e) => setMachine({ ...machine, price: e.target.value })}
-        />
-
-        {/* 現有圖片 */}
-        <div>
-          <p className="mb-2 font-semibold">現有圖片：</p>
-          <div className="flex flex-wrap gap-3">
-            {machine.images?.map((img) => (
-              <div key={img} className="relative">
-                <img src={img} className="w-28 h-28 object-cover rounded" />
-                <button
-                  onClick={() => removeImg(img)}
-                  className="absolute top-1 right-1 bg-red-600 text-white px-2 py-1 rounded"
-                >
-                  X
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 新增圖片 */}
-        <div>
-          <p className="mb-2">新增圖片（可多選）</p>
-          <input
-            type="file"
-            multiple
-            onChange={(e) => setNewImages([...e.target.files])}
-            className="text-white"
+      {/* 3D 圖片展示 */}
+      {images.length > 0 && (
+        <div className="flex justify-center mb-6">
+          <img
+            ref={imgRef}
+            src={images[currentIndex]}
+            alt="3D"
+            className="w-96 h-96 object-contain rounded-lg bg-black/30 p-4 cursor-grab"
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            draggable="false"
           />
         </div>
+      )}
 
-        <button className="btn-dark w-full py-3 mt-4" onClick={save}>
-          儲存修改
-        </button>
+      {/* 詳細資訊 */}
+      <div className="bg-darkcard p-6 rounded-xl shadow-lg border border-darkborder max-w-2xl mx-auto space-y-4">
+        <p><span className="font-semibold">名稱：</span>{machine.name}</p>
+        <p><span className="font-semibold">型號：</span>{machine.model}</p>
+        <p><span className="font-semibold">功率：</span>{machine.power}</p>
+        <p><span className="font-semibold">價格：</span>NT$ {machine.price}</p>
+        <p><span className="font-semibold">地區：</span>{machine.location}</p>
+        <p><span className="font-semibold">描述：</span>{machine.description}</p>
       </div>
+
+      {/* 縮圖列表 */}
+      {images.length > 1 && (
+        <div className="flex gap-2 mt-6 justify-center flex-wrap">
+          {images.map((img, index) => (
+            <img
+              key={index}
+              src={img}
+              className={`w-20 h-20 rounded cursor-pointer border ${
+                currentIndex === index
+                  ? "border-primary shadow-lg"
+                  : "border-gray-600"
+              }`}
+              onClick={() => setCurrentIndex(index)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

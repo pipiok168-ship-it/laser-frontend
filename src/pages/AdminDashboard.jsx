@@ -1,18 +1,25 @@
+// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
-import { fetchMachines, deleteMachine } from "../api";
 import { useNavigate } from "react-router-dom";
+import { getMachines, deleteMachine } from "../api";
+import AdminTopBar from "../components/AdminTopBar.jsx";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
   const [loading, setLoading] = useState(true);
-  const nav = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("laser_token");
+    if (!token) navigate("/admin/login");
+  }, [navigate]);
 
   const load = async () => {
     try {
-      const res = await fetchMachines();
-      setMachines(res.data || []);
-    } catch (e) {
-      console.error("讀取機台失敗:", e);
+      const res = await getMachines();
+      setMachines(res.data);
+    } catch (err) {
+      console.log("讀取失敗:", err);
     } finally {
       setLoading(false);
     }
@@ -22,92 +29,119 @@ export default function AdminDashboard() {
     load();
   }, []);
 
-  const del = async (id) => {
-    if (!confirm("確定刪除這台機器？此動作無法復原。")) return;
-    await deleteMachine(id);
-    load();
+  const remove = async (id) => {
+    if (!window.confirm("確定要刪除嗎？")) return;
+    try {
+      await deleteMachine(id);
+      load();
+    } catch (err) {
+      console.log("刪除失敗:", err);
+      alert("刪除失敗，請稍後再試。");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-slate-900 text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex flex-wrap gap-3 items-center justify-between mb-6">
+    <div className="min-h-screen bg-[#050505] text-white">
+      <AdminTopBar />
+
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">後台管理 · 機台列表</h1>
-            <p className="text-xs text-slate-400">
-              你可以在此新增、編輯、刪除上架中的二手雷射機台。
+            <h2 className="text-xl font-semibold mb-1">
+              機台列表管理
+            </h2>
+            <p className="text-xs text-gray-400">
+              目前共有 {machines.length} 台機器在平台上架
             </p>
           </div>
-          <div className="flex gap-3">
-            <button
-              className="text-xs px-4 py-2 rounded-full border border-slate-600 hover:bg-slate-800/60"
-              onClick={() => {
-                localStorage.removeItem("token");
-                nav("/admin/login");
-              }}
-            >
-              登出
-            </button>
-            <button
-              className="btn-dark text-xs"
-              onClick={() => nav("/admin/machines/new")}
-            >
-              + 新增機器
-            </button>
-          </div>
-        </header>
 
-        {loading ? (
-          <p className="text-sm text-slate-300">載入中…</p>
-        ) : machines.length === 0 ? (
-          <div className="border border-dashed border-slate-700 rounded-xl p-6 text-center text-sm text-slate-400">
-            尚未有上架機台，點右上角「新增機器」即可開始上架。
+          <button
+            onClick={() => navigate("/admin/add")}
+            className="px-3 py-1.5 rounded-full bg-[#00b4ff] text-black text-sm font-semibold hover:bg-[#35c9ff] transition"
+          >
+            ＋ 新增機台
+          </button>
+        </div>
+
+        <div className="bg-[#0b0b0b] border border-[#222] rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-12 text-xs px-4 py-2 border-b border-[#222] text-gray-400">
+            <div className="col-span-4">名稱 / 型號</div>
+            <div className="col-span-2">地區</div>
+            <div className="col-span-2">功率</div>
+            <div className="col-span-2">價格</div>
+            <div className="col-span-2 text-right">操作</div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {machines.map((m) => (
-              <div
-                key={m.id}
-                className="bg-black/70 border border-slate-800 rounded-2xl overflow-hidden shadow hover:shadow-neon transition flex flex-col"
-              >
-                {m.images?.[0] && (
-                  <img
-                    src={m.images[0]}
-                    alt={m.name}
-                    className="w-full h-40 object-cover"
-                  />
-                )}
-                <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                  <div>
-                    <h2 className="text-sm font-semibold line-clamp-1">
-                      {m.name || "未命名機台"}
-                    </h2>
-                    <p className="text-[11px] text-slate-400">
-                      {m.location || "地區未填寫"}
-                    </p>
-                    <p className="text-sm font-bold text-blue-400 mt-1">
-                      {m.price ? `${m.price} 元` : "價格洽詢"}
-                    </p>
+
+          {loading ? (
+            <div className="p-6 text-center text-gray-400 text-sm">
+              載入中…
+            </div>
+          ) : machines.length === 0 ? (
+            <div className="p-6 text-center text-gray-400 text-sm">
+              目前尚未有任何資料
+            </div>
+          ) : (
+            machines.map((m) => {
+              const thumb = m.thumbs?.[0] || m.images?.[0] || "";
+
+              return (
+                <div
+                  key={m.id}
+                  className="grid grid-cols-12 items-center text-xs px-4 py-3 border-b border-[#191919] hover:bg-white/5"
+                >
+                  <div className="col-span-4 flex items-center gap-3">
+                    <div className="w-12 h-10 rounded-lg bg-[#151515] overflow-hidden flex-shrink-0">
+                      {thumb && (
+                        <img
+                          src={thumb}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="font-semibold text-[13px] line-clamp-1">
+                        {m.name}
+                      </div>
+                      <div className="text-gray-400 line-clamp-1">
+                        {m.model}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2 pt-2">
+
+                  <div className="col-span-2 text-gray-200">
+                    {m.location}
+                  </div>
+
+                  <div className="col-span-2 text-gray-200">
+                    {m.power}
+                  </div>
+
+                  <div className="col-span-2 text-[#00b4ff] font-semibold">
+                    {m.price ? `NT$ ${m.price}` : "洽詢"}
+                  </div>
+
+                  <div className="col-span-2 flex justify-end gap-2">
                     <button
-                      className="btn-dark flex-1 text-xs"
-                      onClick={() => nav(`/admin/machines/${m.id}/edit`)}
+                      onClick={() => window.open(`/detail/${m.id}`, "_blank")}
+                      className="px-2 py-1 rounded-full border border-[#333] text-[11px] hover:border-[#00b4ff] hover:text-[#8fe2ff] transition"
                     >
-                      編輯
+                      檢視
                     </button>
+
                     <button
-                      className="flex-1 text-xs px-3 py-2 rounded bg-red-600 hover:bg-red-700"
-                      onClick={() => del(m.id)}
+                      onClick={() => remove(m.id)}
+                      className="px-2 py-1 rounded-full border border-red-600/70 text-[11px] text-red-300 hover:bg-red-900/40 transition"
                     >
                       刪除
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              );
+            })
+          )}
+
+        </div>
       </div>
     </div>
   );

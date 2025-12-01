@@ -1,153 +1,141 @@
+// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
-import { fetchMachines } from "../api";
+import { getMachines } from "../api";
 import { useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
 
 export default function Home() {
+  const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const nav = useNavigate();
+  const [keyword, setKeyword] = useState("");
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetchMachines();
-        setMachines(res.data || []);
-      } catch (e) {
-        console.error("讀取機台失敗:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
     load();
   }, []);
 
+  const load = async () => {
+    try {
+      const res = await getMachines();
+      setMachines(res.data);
+    } catch (err) {
+      console.log("讀取機台失敗:", err);
+    }
+  };
+
+  const filtered = machines.filter((m) => {
+    const k = keyword.toLowerCase();
+    return (
+      m.name?.toLowerCase().includes(k) ||
+      m.model?.toLowerCase().includes(k) ||
+      m.location?.includes(keyword) ||
+      String(m.price || "").includes(keyword)
+    );
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900 text-white">
-      {/* 頂部導覽列 */}
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-black/60 backdrop-blur sticky top-0 z-20">
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => nav("/")}
-        >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-neon">
-            <span className="text-sm font-extrabold text-black">LM</span>
-          </div>
-          <div>
-            <div className="text-sm font-bold tracking-wide">
-              LASER MARKET
-            </div>
-            <div className="text-[11px] text-slate-400">
-              二手雷射機台嚴選平台
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#050505] text-white">
+      {/* HERO 區塊 */}
+      <div className="relative h-[320px] md:h-[380px] bg-gradient-to-b from-black to-[#050505] flex items-center px-6">
+        <div className="absolute inset-0 opacity-25 bg-[url('https://images.unsplash.com/photo-1581091215367-59ab6dcef1fe')] bg-cover bg-center" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#00b4ff33,transparent_55%)]" />
 
-        <button
-          onClick={() => nav("/admin/login")}
-          className="text-xs px-4 py-2 rounded-full border border-blue-500/60 text-blue-100 hover:bg-blue-500/10 transition"
-        >
-          管理登入
-        </button>
-      </nav>
-
-      {/* Hero 區塊 */}
-      <section className="px-6 pt-10 pb-6">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <p className="text-xs tracking-[0.3em] text-blue-300 mb-3">
-              PREMIUM USED LASER PLATFORM
-            </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
-              精選二手雷射機台，
-              <span className="text-blue-400"> 嚴格上架 · 安心交易</span>
-            </h1>
-            <p className="text-sm text-slate-300 mb-5">
-              每一台機器皆由人工審核 · 支援圖片多張上傳 ·
-              後台管理可快速調整價格、地區、功率等關鍵資訊。
-            </p>
-
-            <div className="flex flex-wrap gap-3 text-xs">
-              <div className="px-3 py-2 rounded-full bg-blue-500/15 border border-blue-500/50">
-                ✅ 實體店家優先上架
-              </div>
-              <div className="px-3 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/40">
-                🔍 支援地區 / 價格篩選
-              </div>
-              <div className="px-3 py-2 rounded-full bg-purple-500/10 border border-purple-500/40">
-                🖼 多圖片 Cloudinary 管理
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute -inset-4 bg-blue-500/20 blur-3xl rounded-3xl" />
-            <div className="relative rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-4 shadow-neon">
-              <div className="flex gap-3 mb-3">
-                <div className="w-2 h-2 rounded-full bg-red-400" />
-                <div className="w-2 h-2 rounded-full bg-yellow-400" />
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-              </div>
-              <div className="aspect-video bg-black/60 rounded-2xl border border-slate-700 flex items-center justify-center text-slate-400 text-xs">
-                Laser Cutting · Engraving · Marking · Welding
-              </div>
-              <p className="mt-3 text-[11px] text-slate-300">
-                從 CO₂、光纖到半導體雷射，我們專注於中高階與工業用設備，
-                讓買賣雙方都能在同一平台安心匹配。
-              </p>
-            </div>
+        <div className="relative z-10 max-w-3xl">
+          <p className="text-sm text-[#7ddcff] mb-2 tracking-[0.18em] uppercase">
+            二手雷射機台交易平台
+          </p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-wide mb-4 drop-shadow-[0_0_12px_#00b4ff99]">
+            Laser Market 暗黑專業版 v2.0
+          </h1>
+          <p className="text-gray-300 text-base md:text-lg">
+            精選設備・嚴格上架・安心交易｜專為工廠、工作室與二手機台商打造的高品質平台。
+          </p>
+          <div className="flex flex-wrap gap-2 mt-4 text-xs">
+            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+              高功率 CO₂ / 光纖機
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+              實拍圖片・詳細規格
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+              完整後台管理
+            </span>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* 列表區塊 */}
-      <section className="px-6 pb-10">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold">最新上架機台</h2>
-              <p className="text-[11px] text-slate-400">
-                由後台管理者手動上架 · 不展示來源不明機器
-              </p>
-            </div>
-          </div>
+      {/* 搜尋列 */}
+      <div className="relative -mt-10 z-20 px-6">
+        <div className="max-w-3xl mx-auto flex items-center bg-[#101010]/95 backdrop-blur-md border border-[#262626] shadow-[0_18px_45px_rgba(0,0,0,0.65)] rounded-2xl px-4 py-3">
+          <FaSearch className="text-gray-400 mr-3" />
+          <input
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="搜尋機台名稱 / 型號 / 地區 / 價格…"
+            className="w-full bg-transparent text-gray-100 outline-none text-sm md:text-base"
+          />
+        </div>
+      </div>
 
-          {loading ? (
-            <div className="text-slate-300 text-sm">載入中…</div>
-          ) : machines.length === 0 ? (
-            <div className="text-sm text-slate-400 border border-dashed border-slate-700 rounded-xl p-6 text-center">
-              目前尚未有上架機台，請至後台新增。
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {machines.map((m) => (
-                <div
-                  key={m.id}
-                  className="bg-black/60 border border-slate-800 rounded-2xl overflow-hidden shadow hover:shadow-neon transition"
-                >
-                  {m.images?.[0] && (
-                    <img
-                      src={m.images[0]}
-                      alt={m.name}
-                      className="w-full h-40 object-cover"
-                    />
-                  )}
-                  <div className="p-4 space-y-2">
-                    <h3 className="font-semibold text-sm line-clamp-1">
-                      {m.name || "未命名機台"}
-                    </h3>
-                    <p className="text-[11px] text-slate-400">
-                      {m.location || "地區未填寫"}
-                    </p>
-                    <p className="text-sm font-bold text-blue-400">
-                      {m.price ? `${m.price} 元` : "價格洽詢"}
-                    </p>
-                  </div>
+      {/* 列表區 */}
+      <div className="max-w-6xl mx-auto px-6 mt-12">
+        <div className="flex items-center justify-between mb-4 text-sm text-gray-400">
+          <span>
+            目前上架：{" "}
+            <span className="text-[#8fe2ff]">
+              {filtered.length} 台
+            </span>
+          </span>
+          <button
+            onClick={() => navigate("/admin/login")}
+            className="text-xs px-3 py-1 rounded-full border border-[#333] hover:border-[#00b4ff] hover:text-[#8fe2ff] transition"
+          >
+            管理登入
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((m) => (
+            <div
+              key={m.id}
+              onClick={() => navigate(`/detail/${m.id}`)}
+              className="bg-[#101010] border border-[#1f1f1f] hover:border-[#00b4ff] hover:shadow-[0_0_16px_#00b4ff66] transition-all rounded-xl p-4 cursor-pointer flex flex-col"
+            >
+              <div className="relative mb-3">
+                <img
+                  src={m.images?.[0]}
+                  className="w-full h-44 object-cover rounded-lg"
+                  alt={m.name}
+                />
+                <div className="absolute left-2 top-2 px-2 py-0.5 rounded-full bg-black/60 text-xs text-gray-200">
+                  {m.power || "功率未填"}
                 </div>
-              ))}
+              </div>
+              <h3 className="text-lg font-semibold line-clamp-1">
+                {m.name}
+              </h3>
+              <p className="text-sm text-gray-400 line-clamp-1">
+                {m.model}
+              </p>
+
+              <div className="flex justify-between mt-3 text-sm text-gray-300">
+                <span>{m.location || "地點未填"}</span>
+                <span className="text-[#00b4ff] font-semibold">
+                  {m.price ? `NT$ ${m.price}` : "價格洽詢"}
+                </span>
+              </div>
+            </div>
+          ))}
+
+          {filtered.length === 0 && (
+            <div className="col-span-full text-center text-gray-500 py-10">
+              目前找不到符合條件的機台，可以試試看其他關鍵字 🔎
             </div>
           )}
         </div>
-      </section>
+
+        <div className="h-16" />
+      </div>
     </div>
   );
 }
+

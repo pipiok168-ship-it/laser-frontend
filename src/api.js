@@ -1,43 +1,37 @@
-// src/api.js
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "https://laser-backend-1.onrender.com", // ✅ 用這個
-});
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 
-// 自動夾帶 Token（Admin 登入用）
+const api = axios.create({ baseURL: API_BASE });
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("laser_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// 取得全部機台（首頁）
-export const fetchMachines = () => api.get("/api/machines");
-
-// 新增（後台）
-export const createMachine = (formData) =>
-  api.post("/api/machines", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
-// 取得單一
-export const getMachineById = (id) => api.get(`/api/machines/${id}`);
-
-// 更新（追加圖片）
-export const updateMachine = (id, formData) =>
-  api.put(`/api/machines/${id}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
-// 刪除單張圖片
-export const deleteImage = (data) => api.post("/api/deleteImage", data);
-
-// 刪除整台
-export const deleteMachine = (id) => api.delete(`/api/machines/${id}`);
-
-// Admin Login
 export const adminLogin = (username, password) =>
   api.post("/api/admin/login", { username, password });
 
-export default api;
+export const getMachines = () => api.get("/api/machines");
+
+export const getMachineById = (id) => api.get(`/api/machines/${id}`);
+
+export const deleteMachine = (id) => api.delete(`/api/machines/${id}`);
+
+export const createMachine = (payload) => {
+  const fd = new FormData();
+  Object.keys(payload).forEach((k) => {
+    if (k !== "images") fd.append(k, payload[k]);
+  });
+
+  if (payload.images) {
+    Array.from(payload.images).forEach((file) => {
+      fd.append("images", file);
+    });
+  }
+
+  return api.post("/api/machines", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
