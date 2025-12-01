@@ -1,8 +1,7 @@
 import axios from "axios";
 
 // --------------------------------------------
-// API Base URL
-// Vercel 會自動讀取 .env 裡的 VITE_API_BASE
+// API Base URL - Vercel + Render 專用
 // --------------------------------------------
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
@@ -15,31 +14,42 @@ const api = axios.create({
 });
 
 // --------------------------------------------
+// Token 自動加入 Header
+// --------------------------------------------
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("laser_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// --------------------------------------------
 // Admin Login
 // --------------------------------------------
-export const adminLogin = (data) =>
-  api.post("/api/admin/login", data);
+export const adminLogin = (username, password) =>
+  api.post("/api/admin/login", { username, password });
 
 // --------------------------------------------
-// Machines APIs
+// Machine APIs
 // --------------------------------------------
-export const getMachines = () =>
-  api.get("/api/machines");
+export const getMachines = () => api.get("/api/machines");
 
-export const getMachine = (id) =>
-  api.get(`/api/machines/${id}`);
+export const getMachineById = (id) => api.get(`/api/machines/${id}`);
 
-export const createMachine = (formData, token) =>
-  api.post("/api/machines", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${token}`,
-    },
+export const deleteMachine = (id) => api.delete(`/api/machines/${id}`);
+
+export const createMachine = (payload) => {
+  const fd = new FormData();
+  Object.keys(payload).forEach((k) => {
+    if (k !== "images") fd.append(k, payload[k]);
   });
 
-export const deleteMachine = (id, token) =>
-  api.delete(`/api/machines/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  if (payload.images) {
+    Array.from(payload.images).forEach((file) => {
+      fd.append("images", file);
+    });
+  }
+
+  return api.post("/api/machines", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
+};
